@@ -8,7 +8,7 @@ typedef struct node
 	struct node *link;
 }NODE;
 
-NODE *head;
+NODE *head=NULL;
 
 void push(int number)
 {
