@@ -2,9 +2,9 @@
 
 import unittest
 
-from checksum import checksum, valid
-from crc_ccitt import crc16_ccitt_false, make_frame, verify_frame
-from ipv4_fragmentation import fragment_packet, reassemble
+from question_03_crc_ccitt.crc_ccitt import crc16_ccitt_false, make_frame, verify_frame
+from question_04_checksum.checksum import checksum, valid
+from question_05_ipv4_fragmentation.ipv4_fragmentation import fragment_packet, reassemble
 
 
 class LabAlgorithmsTest(unittest.TestCase):
