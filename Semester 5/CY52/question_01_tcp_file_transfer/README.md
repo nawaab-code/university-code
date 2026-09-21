@@ -79,7 +79,120 @@ Client                                  Server
 
 The newline marks the end of a text header. The byte count tells the client exactly how many file bytes it must read. These rules provide **framing** on top of TCP's byte stream.
 
-## 3. Files and their purposes
+### The protocol stack behind the transfer
+
+Several layers cooperate during the transfer:
+
+| Layer | Responsibility in this experiment |
+| --- | --- |
+| Application | The Python program defines the filename request, the `OK` and `ERR` responses, and the file-length rule. |
+| Transport | TCP establishes the connection and supplies reliable, ordered bytes between the two programs. |
+| Network | IP carries TCP segments between source and destination computers using IP addresses. |
+| Link | Ethernet or Wi-Fi carries frames over the local physical network. |
+
+The lab says "using TCP/IP," but TCP/IP does not define the filename format. This application defines that protocol; TCP transports its bytes.
+
+The request passes through these transformations:
+
+```text
+Python string "hello.txt"
+        |
+UTF-8 encode
+        v
+Application bytes b"hello.txt\n"
+        |
+TCP divides and transports the byte stream
+        |
+IP routes the TCP data to the server
+        |
+Server TCP reassembles the ordered stream
+        |
+readline() reads through b"\n"
+        |
+UTF-8 decode
+        v
+Python string "hello.txt"
+```
+
+TCP may divide the bytes into segments differently on every run. The programs do not depend on those divisions; they depend only on the ordered byte stream.
+
+### Exact application-protocol messages
+
+Request:
+
+```text
+<UTF-8 filename>\n
+```
+
+Successful response:
+
+```text
+OK <decimal byte count>\n<exact file bytes>
+```
+
+Unsuccessful response:
+
+```text
+ERR <human-readable reason>\n
+```
+
+For example, `hello.txt\n` can produce `OK 37\n` followed by exactly 37 bytes. The response is interpreted in two stages: read one newline-terminated header, then, for `OK`, read exactly the declared body length.
+
+The declared size is the file delimiter. Connection closure is not the normal delimiter, so the client can distinguish a complete file from a connection that failed halfway through.
+
+### What TCP handles and what the application handles
+
+TCP handles acknowledgements, retransmission, ordering, duplicate removal, flow control, and congestion control. This program handles connection setup, its message format, filename validation, filesystem access, exact-length reading, and application errors.
+
+TCP does not guarantee that:
+
+- One `sendall()` corresponds to one `read()`.
+- A full application message arrives in one read.
+- A server is running at the destination.
+- A firewall permits the connection.
+- Received bytes follow this program's protocol.
+- A requested file exists.
+
+## 3. Imported libraries and why they are required
+
+All imports come from Python's standard library, so no `pip install` is required.
+
+### `argparse`
+
+`argparse` converts command-line text into validated program options. It lets the same scripts run with different hosts, ports, directories, filenames, and output paths without editing source code.
+
+The code uses:
+
+- `argparse.ArgumentParser(description=...)` to create the parser and generate help output.
+- `parser.add_argument(...)` to declare arguments, types, defaults, and flags.
+- `parser.parse_args()` to read the command line and return values such as `args.port`.
+- `parser.error(...)` to show a usage error and stop for invalid client input.
+
+### `socket`
+
+`socket` is Python's interface to operating-system networking. It is the central networking library here.
+
+The server uses `socket.socket()`, `setsockopt()`, `bind()`, `listen()`, and `accept()`. The client uses `socket.create_connection()`. Connected sockets use `sendall()` and `makefile()`.
+
+### `pathlib.Path`
+
+`Path` represents filesystem paths as objects. The server uses it to locate and create `shared`, join paths, validate the requested file, open it, and read its size. The client uses it for the optional output path. It also makes path operations portable across Windows, macOS, and Linux.
+
+### `sys`
+
+Only the client imports `sys`. It uses `sys.stdout.buffer`, the binary form of standard output, when no `--output` file is supplied. Normal `print()` expects text, while a transferred file contains arbitrary bytes.
+
+### Built-in Python features
+
+These require no import:
+
+- `with` closes sockets and files even when an exception occurs.
+- `encode()` converts text to bytes; `decode()` converts bytes to text.
+- `len()` counts bytes, `int()` parses the byte count, and `min()` limits each read.
+- `try`/`except` handles expected failures; `try`/`finally` guarantees cleanup.
+- The `:=` assignment expression stores a chunk while checking whether it is empty.
+
+## 4. Files and their purposes
 
 ### `tcp_file_server.py`
 
@@ -99,7 +212,7 @@ The server creates the folder if necessary, but it does not create requested fil
 
 This document explains the experiment. The programs do not read it, so it is documentation rather than a runtime requirement.
 
-## 4. Complete program flow
+## 5. Complete program flow
 
 ### Server flow
 
@@ -151,7 +264,96 @@ Display error and exit      Read size from OK response
                             Display or save the file
 ```
 
-## 5. Server code explained line by line
+## 6. Server API and function reference
+
+This section explains the inputs, outputs, blocking behavior, and purpose of the important server functions. The following line-by-line section shows where each is called.
+
+### `serve_file(connection, shared_dir)`
+
+This function is defined by the program. `connection` is the TCP socket returned by `accept()` for one client, and `shared_dir` is the `Path` containing available files. It reads one request, sends one response, and returns `None`.
+
+### `connection.makefile("rb")`
+
+This wraps the socket in a buffered file-like binary reader. `r` means read and `b` means bytes. It returns an object that supports `readline()` and `read()`. The data still comes from TCP; the wrapper makes buffered line reading convenient.
+
+### `readline(4097)`
+
+`readline()` waits until it receives a newline, reaches end of stream, reaches the size limit, or encounters a socket error. The 4,097-byte limit lets the server detect a line exceeding its allowed 4,096 bytes. It returns `bytes`.
+
+### `request.endswith(b"\n")`
+
+`endswith()` returns `True` when the request has the required newline delimiter. It checks application-protocol framing.
+
+### `request[:-1].decode("utf-8")`
+
+The slice removes the final newline. `decode()` converts the remaining UTF-8 bytes to a Python string and raises `UnicodeDecodeError` for invalid input.
+
+### `connection.sendall(data)`
+
+`sendall()` accepts bytes and repeatedly asks the operating system to send them until all are submitted or an error occurs. It returns `None` on success. Success does not mean the remote application has already processed the bytes.
+
+### `Path(filename).name`
+
+`.name` returns the final path component. Comparing it with the original rejects directory paths such as `folder/file.txt` and `../file.txt`.
+
+### `shared_dir / filename`
+
+`Path` overloads `/` to join path components. This constructs a candidate path without opening the file.
+
+### `path.is_file()`
+
+This returns `True` only when the path currently identifies a regular file. Missing paths and directories return `False`.
+
+### `path.resolve()` and `.parent`
+
+`resolve()` creates an absolute normalized path and resolves symbolic links. `.parent` obtains its containing directory. Their comparison confirms that the resolved file remains directly inside `shared`.
+
+### `path.open("rb")`
+
+This opens the file for binary reading and returns a file object. The `with` block closes it automatically. Opening can raise an `OSError` if permission is denied or the filesystem changes after validation.
+
+### `path.stat().st_size`
+
+`stat()` requests filesystem metadata; `st_size` is the byte length placed in the success header.
+
+### `source.read(CHUNK_SIZE)`
+
+`read(65536)` returns up to 65,536 bytes and may return fewer near the end. At end of file it returns `b""`, which ends the loop.
+
+### `socket.socket(AF_INET, SOCK_STREAM)`
+
+`AF_INET` selects IPv4 addresses represented by `(host, port)`. `SOCK_STREAM` selects TCP's byte-stream behavior. The new socket is not listening until it is bound and `listen()` is called.
+
+### `server.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)`
+
+This enables the general socket option `SO_REUSEADDR`, helping a restarted server reuse its local address. It does not normally allow two active servers to use the same endpoint simultaneously.
+
+### `server.bind((host, port))`
+
+`bind()` assigns the socket's local IP address and port. It returns `None` or raises an `OSError`, for example if the address is unavailable or the port is occupied.
+
+### `server.listen()`
+
+`listen()` turns the bound socket into a passive listening socket and asks the operating system to queue connection attempts. It does not return a client socket.
+
+### `server.accept()`
+
+`accept()` blocks until a connection is ready. It returns a new connected socket and the client's address tuple. The original server socket remains available for later clients.
+
+### `server.getsockname()`
+
+This returns the socket's local address. Index `[1]` is the actual port, including an automatically assigned port if the program ever binds to port zero.
+
+### Server exceptions
+
+- `UnicodeDecodeError`: the filename is not valid UTF-8.
+- `BrokenPipeError`: the server sends after the client has closed the connection.
+- `ConnectionResetError`: the client forcibly resets the connection.
+- `OSError`: the base class for many socket, permission, bind, and file failures.
+
+Protocol and client-disconnection errors are handled explicitly. Setup and unexpected filesystem errors remain visible so the operator knows why the server failed.
+
+## 7. Server code explained line by line
 
 The line numbers refer to `tcp_file_server.py`. Blank lines only separate logical sections.
 
@@ -210,7 +412,61 @@ The line numbers refer to `tcp_file_server.py`. Blank lines only separate logica
 | 64 | Checks whether the file was run directly rather than imported. |
 | 65 | Calls `main()` to start the server. |
 
-## 6. Client code explained line by line
+## 8. Client API and function reference
+
+### `main()`
+
+This program-defined function parses arguments, opens one connection, sends one request, receives one response, and exits.
+
+### `socket.create_connection((host, port), timeout=5)`
+
+This convenience function resolves the host if needed, creates a suitable TCP socket, connects it, and returns the connected socket. The timeout prevents network operations from waiting forever. Failures can raise `socket.timeout`, `ConnectionRefusedError`, or another `OSError`.
+
+### `connection.sendall((filename + "\n").encode("utf-8"))`
+
+The expression appends the protocol delimiter, converts the complete string to UTF-8 bytes, and sends every request byte.
+
+### `reader.readline(4097)`
+
+This reads one response header with a safety limit. The first newline ends the header, so later file bytes are not decoded as header text.
+
+### `header.startswith(prefix)`
+
+`startswith()` returns a Boolean indicating whether the bytes begin with a recognized prefix. Checking `ERR ` first separates an application error from a successful response.
+
+### `header.decode("utf-8", errors="replace").strip()`
+
+`decode()` converts error bytes into displayable text. `errors="replace"` substitutes a marker for malformed bytes instead of raising another error. `strip()` removes the ending newline and surrounding whitespace.
+
+### `int(header[3:].strip())`
+
+The slice removes `OK `, `strip()` removes the newline, and `int()` parses the decimal byte count. Invalid numeric text raises `ValueError` because the response is malformed.
+
+### `args.output.open("wb")`
+
+This opens the destination for binary writing. `w` creates or truncates the file; `b` prevents text conversion. It returns a file object with `write()` and `close()` methods.
+
+### `sys.stdout.buffer`
+
+This is standard output's underlying binary stream. It allows arbitrary received bytes to be written without decoding them as text.
+
+### `reader.read(min(64 * 1024, remaining))`
+
+`min()` chooses the smaller of the chunk limit and bytes still expected. `read()` may return fewer bytes than requested, so the loop subtracts the actual length and repeats. An empty result while `remaining` is positive means an incomplete transfer.
+
+### `destination.write(chunk)`
+
+`write()` places bytes in the output file or terminal and returns the number written. Closing a buffered file flushes pending output to the operating system.
+
+### `raise RuntimeError(...)`
+
+`raise` stops normal execution. `RuntimeError` reports a malformed protocol response or incomplete transfer that should not occur during a valid exchange.
+
+### `raise SystemExit(...)`
+
+`SystemExit` ends the client cleanly with the server's message. It is used for an expected application error, such as a missing file, rather than malformed protocol data.
+
+## 9. Client code explained line by line
 
 The line numbers refer to `tcp_file_client.py`.
 
@@ -260,7 +516,7 @@ The line numbers refer to `tcp_file_client.py`.
 | 49 | Checks whether the file was run directly. |
 | 50 | Calls `main()` to start the client. |
 
-## 7. Requirements on another machine
+## 10. Requirements on another machine
 
 ### Software
 
@@ -306,7 +562,7 @@ For two machines:
 - The server firewall must permit incoming TCP traffic on the port.
 - The client must know the server's IP address.
 
-## 8. Running both programs on one machine
+## 11. Running both programs on one machine
 
 Open two terminals in this directory and start the server first.
 
@@ -376,7 +632,7 @@ python3 tcp_file_server.py --once
 
 On Windows, replace `python3` with `py -3` if necessary.
 
-## 9. Running on two machines
+## 12. Running on two machines
 
 1. Connect both computers to a network that permits communication.
 2. Find the server computer's local IP address.
@@ -405,7 +661,7 @@ python3 tcp_file_server.py --host 0.0.0.0 --port 6000
 python3 tcp_file_client.py hello.txt --host 192.168.1.20 --port 6000
 ```
 
-## 10. Expected behavior and common problems
+## 13. Expected behavior and common problems
 
 | Situation | Expected behavior or solution |
 | --- | --- |
@@ -422,7 +678,7 @@ python3 tcp_file_client.py hello.txt --host 192.168.1.20 --port 6000
 | Client disconnects during transfer | The server catches a broken-pipe or reset error. |
 | Large file requested | It is sent in 65,536-byte chunks rather than loaded completely into memory. |
 
-## 11. Why the design works this way
+## 14. Why the design works this way
 
 ### Why send the size before the file?
 
@@ -452,7 +708,7 @@ Without validation, a client might request `../private.txt` and access an uninte
 
 The original socket keeps listening. `accept()` returns a new socket for communication with one client, allowing the server to return to listening after that request.
 
-## 12. Exam and viva points
+## 15. Exam and viva points
 
 - Server sequence: `socket()` -> `bind()` -> `listen()` -> `accept()` -> receive -> send.
 - Client sequence: connect -> send filename -> read header -> read the exact file size.
