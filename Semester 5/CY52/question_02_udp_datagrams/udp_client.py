@@ -1,25 +1,19 @@
-"""Lab 2: request and display one UDP message from the server."""
+"""Send one UDP message and display the server's reply."""
 
-import argparse
 import socket
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=5002)
-    parser.add_argument("--request", default="Send me your message")
-    args = parser.parse_args()
-
-    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as client:
-        client.settimeout(3)
-        client.sendto(args.request.encode("utf-8"), (args.host, args.port))
-        try:
-            message, address = client.recvfrom(4096)
-        except socket.timeout:
-            raise SystemExit("No UDP response within 3 seconds") from None
-        print(f"Message from {address}: {message.decode('utf-8', errors='replace')}")
+HOST = "127.0.0.1"
+PORT = 5000
+BUFFER_SIZE = 1024
 
 
-if __name__ == "__main__":
-    main()
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+message = "Hello Server"
+client_socket.sendto(message.encode("utf-8"), (HOST, PORT))
+
+data, server_address = client_socket.recvfrom(BUFFER_SIZE)
+print("Server:", data.decode("utf-8"))
+
+client_socket.close()
