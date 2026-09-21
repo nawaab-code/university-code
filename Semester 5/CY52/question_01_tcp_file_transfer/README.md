@@ -212,6 +212,89 @@ The server creates the folder if necessary, but it does not create requested fil
 
 This document explains the experiment. The programs do not read it, so it is documentation rather than a runtime requirement.
 
+### Folder structure used in this repository
+
+The screenshot shows part of the following structure:
+
+```text
+CY52/
+|-- .gitignore
+|-- README.md
+|-- __pycache__/                         # Generated Python cache; not required
+|-- question_01_tcp_file_transfer/       # Everything for Lab Question 1
+|   |-- __pycache__/                     # Generated Python cache; not required
+|   |-- shared/                          # Files the server is allowed to provide
+|   |   `-- hello.txt                   # Sample server-side file
+|   |-- README.md                        # Question 1 explanation and instructions
+|   |-- tcp_file_client.py               # Client program
+|   `-- tcp_file_server.py              # Server program
+|-- question_02_udp_datagrams/           # Separate Lab Question 2
+|   |-- README.md
+|   |-- udp_client.py
+|   `-- udp_server.py
+|-- question_03_crc_ccitt/               # Separate Lab Question 3
+|-- question_04_checksum/                # Separate Lab Question 4
+|-- question_05_ipv4_fragmentation/      # Separate Lab Question 5
+`-- tests/                               # Automated checks for lab algorithms
+```
+
+#### Why there is one folder per question
+
+Each lab question has its own directory so its source files, sample data, commands, and documentation remain together. This prevents similarly named client and server programs from different experiments from being mixed.
+
+`question_02_udp_datagrams` is a sibling of Question 1 because it is a separate UDP experiment. It is not used when running the TCP file-transfer program.
+
+#### Why client and server are separate files
+
+The client and server perform different roles and must run as separate processes. They may also run on different computers. Keeping them in separate files lets the server remain active in one terminal while a client starts independently in another.
+
+#### Why `shared/` is inside the Question 1 folder
+
+The server's default is calculated with:
+
+```python
+Path(__file__).with_name("shared")
+```
+
+`__file__` is the path of `tcp_file_server.py`. `with_name("shared")` replaces the script's filename with `shared`, so the server consistently locates the folder beside itself even if the terminal's current directory is different.
+
+Keeping transferable files in `shared/` also creates a clear boundary: the server exposes direct files from this folder and rejects paths that try to reach elsewhere.
+
+#### What `__pycache__/` contains
+
+Python may automatically create an `__pycache__` directory when modules are imported or compiled. It contains files such as:
+
+```text
+tcp_file_server.cpython-314.pyc
+```
+
+A `.pyc` file contains cached Python bytecode. It can make later imports slightly faster, but it is not source code and is not required to understand, copy, edit, or submit the experiment.
+
+Important behavior:
+
+- Do not create `__pycache__` manually.
+- It may appear after running tests or importing a script.
+- It can be deleted safely; Python recreates it when useful.
+- It can differ between Python versions and computers.
+- The repository's `.gitignore` excludes it from Git.
+- The top-level cache shown in the screenshot can contain stale bytecode from earlier runs or an earlier layout. It does not participate in this experiment.
+
+For an exam, copy the `.py` files and the required sample/shared files. Do not depend on or submit `__pycache__`.
+
+#### Minimum Question 1 structure
+
+The smallest convenient same-machine structure is:
+
+```text
+question_01_tcp_file_transfer/
+|-- tcp_file_server.py
+|-- tcp_file_client.py
+`-- shared/
+    `-- hello.txt
+```
+
+`README.md` is strongly useful for reference but is not read by the program. The parent `CY52` folder, other question folders, tests, and cache directories are not required to run Question 1.
+
 ## 5. Complete program flow
 
 ### Server flow
