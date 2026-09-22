@@ -28,7 +28,9 @@ See the [CY52 course README](Semester%205/CY52/README.md) for the full lab index
 
 - Organized the CY52 lab files into one folder per syllabus question. Related client, server, helper, and sample files now live together.
 - Added a README inside each CY52 question folder and a central test suite under `Semester 5/CY52/tests/`.
-- Added Python implementations of the first five CY52 experiments, including error demonstrations for missing files, altered data, and invalid fragments.
+- Matched professor-corrected student records to the first five CY52 experiments by topic.
+- Simplified the CY52 programs to short, interactive lab versions that are easier to learn and reproduce in an exam.
+- Expanded every CY52 question README with imports, protocol or algorithm concepts, folder rationale, run instructions, and line-by-line explanations.
 - Kept earlier Semester 4 coursework grouped under `Semester 4/CYL46` and `Semester 4/CYL48`.
 
 ## Run the CY52 checks
