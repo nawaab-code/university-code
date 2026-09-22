@@ -7,7 +7,7 @@ HOST = "127.0.0.1"
 PORT = 5000
 BUFFER_SIZE = 1024
 
-
+#Socket creation and binding to the specified host and port
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server_socket.bind((HOST, PORT))
 
