@@ -1,2 +1,3 @@
-build/
-safe_files/
+Part_A/*/main
+Part_A/*/app.log
+Part_A/*/safe_data/

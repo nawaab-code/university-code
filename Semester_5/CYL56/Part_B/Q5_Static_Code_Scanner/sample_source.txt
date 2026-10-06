@@ -1,0 +1,5 @@
+password = "classroom-example"
+result = eval(user_input)
+os.system(command)
+endpoint = "http://example.invalid/api"
+print("ordinary line")

@@ -9,6 +9,7 @@ Course exercises organized by semester and course. Each CY52 networking experime
 | [Semester 4 / CYL46](Semester%204/CYL46) | `1.sql`: MySQL library database schema, sample data, and queries | MySQL |
 | [Semester 4 / CYL48](Semester%204/CYL48) | `1.py`–`8.py`: NumPy, pandas, Matplotlib, Seaborn, and Plotly exercises | Python plus the libraries imported by each script |
 | [Semester 5 / CY52](Semester%205/CY52) | First five Advanced Networks lab experiments in Python | Python 3.10+; standard library only |
+| [Semester 5 / CYL56](Semester_5/CYL56) | All 12 Defensive Laboratory questions, one folder per question | C++17 and Python 3; Python standard library only |
 
 CYL48's `4.py` expects a `file.csv` in its working directory; that data file is not in this repository. CYL46's `1.sql` starts by dropping and recreating `library_db`, so inspect it before running it against a MySQL instance that already has that database.
 

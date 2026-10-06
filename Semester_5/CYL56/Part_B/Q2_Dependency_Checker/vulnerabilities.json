@@ -1,0 +1,18 @@
+[
+  {
+    "package": "requests",
+    "cve": "CVE-2023-32681",
+    "severity": "MEDIUM",
+    "ranges": [">=2.3.0,<2.31.0"],
+    "details": "Proxy-Authorization header may be exposed to a destination server.",
+    "url": "https://github.com/psf/requests/security/advisories/GHSA-j8r2-6x86-q33q"
+  },
+  {
+    "package": "urllib3",
+    "cve": "CVE-2024-37891",
+    "severity": "MEDIUM",
+    "ranges": ["<1.26.19", ">=2.0.0,<2.2.2"],
+    "details": "Proxy-Authorization header may not be stripped on cross-origin redirects.",
+    "url": "https://github.com/urllib3/urllib3/security/advisories/GHSA-34jh-p97f-mpxf"
+  }
+]
