@@ -1,34 +1,20 @@
-"""Line-based demonstration scanner; findings need manual confirmation."""
-import argparse
 from pathlib import Path
 import re
+import sys
 
-HERE = Path(__file__).resolve().parent
 RULES = [
-    ("HIGH", "dangerous eval/exec", re.compile(r"\b(?:eval|exec)\s*\(")),
-    ("HIGH", "shell command execution", re.compile(r"\bos\.system\s*\(|\bshell\s*=\s*True\b")),
-    ("HIGH", "hardcoded credential", re.compile(r"\b(?:password|passwd|api_key|secret)\s*=\s*['\"][^'\"]+['\"]", re.I)),
-    ("MEDIUM", "insecure HTTP URL", re.compile(r"http://[^\s'\"]+", re.I)),
+    ("HIGH", "eval/exec", r"\b(?:eval|exec)\s*\("),
+    ("HIGH", "shell command", r"\bos\.system\s*\(|\bshell\s*=\s*True\b"),
+    ("HIGH", "hardcoded credential", r"\b(?:password|passwd|api_key|secret)\s*=\s*['\"][^'\"]+['\"]"),
+    ("MEDIUM", "HTTP URL", r"http://[^\s'\"]+"),
 ]
-PRIORITY = {"HIGH": 0, "MEDIUM": 1}
 
+source = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).with_name("sample_source.txt")
+findings = []
+for number, line in enumerate(source.read_text().splitlines(), 1):
+    for severity, label, pattern in RULES:
+        if re.search(pattern, line, re.I):
+            findings.append((severity, number, label))
 
-def scan(path):
-    findings = []
-    for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-        for severity, label, pattern in RULES:
-            if pattern.search(line):
-                findings.append((severity, number, label))
-    return sorted(findings, key=lambda item: (PRIORITY[item[0]], item[1], item[2]))
-
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("source", type=Path, nargs="?", default=HERE / "sample_source.txt")
-    args = parser.parse_args()
-    for severity, line, label in scan(args.source):
-        print(f"[{severity}] line {line}: {label}")
-
-
-if __name__ == "__main__":
-    main()
+for severity, number, label in sorted(findings, key=lambda row: (row[0] != "HIGH", row[1])):
+    print(f"[{severity}] line {number}: {label}")

@@ -1,27 +1,24 @@
-#include <array>
 #include <cstring>
 #include <iostream>
 #include <stdexcept>
 #include <string>
 
 class SafeBuffer {
-    std::array<char, 16> data_{}; // 15 characters plus the NUL terminator.
+    char data[16]{}; // 15 characters and a terminating '\0'.
 public:
-    void store(const std::string& value) {
-        if (value.size() >= data_.size()) {
-            throw std::length_error("input exceeds 15-character buffer capacity");
-        }
-        std::memcpy(data_.data(), value.c_str(), value.size() + 1);
+    void store(const std::string& text) {
+        if (text.size() >= sizeof(data)) throw std::length_error("buffer is full");
+        std::memcpy(data, text.c_str(), text.size() + 1);
     }
-    const char* value() const { return data_.data(); }
+    const char* get() const { return data; }
 };
 
 int main() {
     SafeBuffer buffer;
-    for (const std::string input : {"safe input", "this string is too long"}) {
+    for (const auto& text : {"safe input", "this string is too long"}) {
         try {
-            buffer.store(input);
-            std::cout << "Stored: " << buffer.value() << '\n';
+            buffer.store(text);
+            std::cout << "Stored: " << buffer.get() << '\n';
         } catch (const std::length_error& error) {
             std::cout << "Rejected: " << error.what() << '\n';
         }

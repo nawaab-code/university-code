@@ -6,14 +6,35 @@ Build a C++ logging class that writes timestamped, severity-labelled entries to 
 
 ## Brief Explanation
 
-`Logger` opens `app.log` in append mode, writes INFO, WARNING, and ERROR entries, and throws for an empty message. The `std::ofstream` member closes automatically.
+`Logger` opens a file in append mode, writes timestamped INFO/WARNING/ERROR entries, rejects empty messages, and lets `std::ofstream` close the file automatically.
 
 ## Extensive Explanation
 
-- The constructor checks that the stream opened, so callers cannot use an unusable logger.
-- Each entry includes a local timestamp and severity label. The stream is flushed and checked after every write, exposing write errors promptly.
-- The destructor of `std::ofstream` closes the file even when another operation throws. No explicit close is required.
-- Avoid putting secrets in log messages in real applications; this demo uses fixed, non-sensitive messages.
+### Remember the flow
+
+**Open → validate message → write and flush → close by destructor.** No manual `close()` is needed.
+
+### Walkthrough
+
+1. The constructor opens `app.log` with `std::ios::app`, so each run adds entries rather than replacing earlier ones. It throws immediately if opening fails.
+2. `log` rejects an empty message with `std::invalid_argument` before writing anything.
+3. `std::time` obtains the current time; `std::put_time` formats it. The severity string and message are added to the same line.
+4. `flush()` sends buffered output to the file. The stream is checked afterward so a detected write failure becomes an exception.
+5. The program writes at three severity levels and catches the deliberate empty-message attempt.
+
+### Example entry
+
+```text
+2026-10-18 12:34:56 [WARNING] Failed login
+```
+
+The timestamp shown here is only an example; real output uses the local time when you run it.
+
+### Limits and viva points
+
+- The `std::ofstream` member closes in its destructor, including when an exception leaves the scope.
+- Avoid logging passwords or tokens in a real application. The demonstration messages are fixed and contain no secrets.
+- The label is a simple string to keep the classroom code short; a larger system could restrict it with an enum.
 
 ## How to Operate/Run the Files
 
@@ -23,4 +44,4 @@ g++ -std=c++17 -Wall -Wextra -pedantic main.cpp -o main
 cat app.log
 ```
 
-Run from this folder. Repeated runs append three more entries to `app.log`.
+Run from this folder. Each run appends three lines to `app.log`; the empty message is rejected.

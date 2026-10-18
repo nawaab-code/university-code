@@ -1,10 +1,13 @@
-"""Score simulated network events by source IP."""
 import csv
 from collections import defaultdict
 from pathlib import Path
 
-EVENTS = Path(__file__).with_name("sample_events.csv")
 WEIGHTS = {"FAILED_LOGIN": 3, "PORT_SCAN": 5, "BLOCKED_CONNECTION": 2}
+scores = defaultdict(int)
+
+with Path(__file__).with_name("sample_events.csv").open(newline="") as file:
+    for row in csv.DictReader(file):
+        scores[row["ip"]] += WEIGHTS[row["event"]]
 
 
 def risk(score):
@@ -15,24 +18,8 @@ def risk(score):
     return "LOW"
 
 
-def main():
-    scores = defaultdict(int)
-    counts = defaultdict(lambda: defaultdict(int))
-    with EVENTS.open(newline="", encoding="utf-8") as file:
-        for row in csv.DictReader(file):
-            event = row["event"]
-            if event not in WEIGHTS:
-                raise ValueError(f"unknown event: {event}")
-            ip = row["ip"]
-            scores[ip] += WEIGHTS[event]
-            counts[ip][event] += 1
-    ranked = sorted(scores.items(), key=lambda item: (-item[1], item[0]))
-    for ip, score in ranked:
-        print(f"{ip}: score={score}, risk={risk(score)}, events={dict(counts[ip])}")
-    if ranked:
-        ip, score = ranked[0]
-        print(f"ALERT: most dangerous host is {ip} (score {score}, {risk(score)} risk)")
-
-
-if __name__ == "__main__":
-    main()
+ranked = sorted(scores.items(), key=lambda item: (-item[1], item[0]))
+for ip, score in ranked:
+    print(f"{ip}: score={score}, risk={risk(score)}")
+if ranked:
+    print(f"ALERT: most dangerous host is {ranked[0][0]}")

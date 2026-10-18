@@ -6,14 +6,36 @@ Implement a Python program that creates a sample configuration file containing c
 
 ## Brief Explanation
 
-The program creates a deliberately weak sample configuration, checks its settings and file mode, then prints prioritized findings and fixes.
+The program builds a deliberately insecure sample configuration, checks its values and file permissions, and prints issues in severity order with a fix for each.
 
 ## Extensive Explanation
 
-- It reads simple `KEY=VALUE` settings and records line numbers. Nonempty `password`, `db_password`, and `api_key` values are treated as plaintext secrets.
-- Enabled debug mode and disabled SSL are flagged. The file mode is checked for any group or other permissions; secret files should normally be restricted to owner read/write (`0600`).
-- Findings are sorted CRITICAL, HIGH, MEDIUM, LOW. The sample is created inside a private temporary directory and deleted when the program ends, so its deliberately loose file mode is contained.
-- This is a teaching auditor for a flat configuration format, not a parser for YAML, JSON, or every security setting.
+### Remember the flow
+
+**Read settings → apply security checks → sort findings → print fixes.** The same `audit` function can inspect the built-in sample or a path supplied by the user.
+
+### Walkthrough
+
+1. The parser reads a simple `key=value` file. It splits at the first `=`, trims surrounding spaces, makes the key lowercase, and remembers the line number.
+2. A nonempty `password`, `db_password`, or `api_key` is treated as a plaintext secret and marked CRITICAL. The remediation is to move secrets into a protected secret manager.
+3. `debug=true` is flagged because debug output can expose internal information. `ssl_enabled=false` is flagged because it disables transport encryption.
+4. `stat.S_IMODE` extracts permission bits. `mode & 0o077` detects *any* group or other access. A secret config should generally be owner-only, such as `0600`.
+5. `sorted` uses `PRIORITY` so CRITICAL findings appear before HIGH findings.
+
+### Sample findings
+
+| Setting or mode | Severity | Suggested fix |
+| --- | --- | --- |
+| `password=EXAMPLE_NOT_REAL` | CRITICAL | Use a secret manager |
+| `debug=true` | HIGH | Disable debug mode |
+| `ssl_enabled=false` | HIGH | Enable TLS |
+| `0666` file mode | HIGH | Set mode to `0600` |
+
+### Limits and viva points
+
+- The sample value is fake. It is created inside a private temporary directory and deleted automatically.
+- This simple parser understands flat `key=value` lines. It does not parse YAML, JSON, comments, or nested settings.
+- The priority number is an ordering aid: lower numbers mean higher urgency.
 
 ## How to Operate/Run the Files
 
@@ -22,4 +44,4 @@ python3 main.py
 python3 main.py /path/to/config.conf
 ```
 
-The first command creates and audits the built-in sample. The second audits your own `KEY=VALUE` file.
+The first command creates and audits the sample. The second audits your own flat configuration file. The program uses only Python's standard library.

@@ -6,14 +6,35 @@ Write a Python program that analyses network log entries and raises alerts for b
 
 ## Brief Explanation
 
-The program reads `sample_log.csv`, counts failed logins and distinct connection ports per IP, and checks transfer size. The sample triggers all three alerts.
+The program scans a simulated CSV log and alerts on repeated failed logins, connections to several ports, or a transfer larger than the threshold.
 
 ## Extensive Explanation
 
-- Three or more failed logins from one IP trigger a brute-force alert. Three or more distinct ports trigger a port-scan alert.
-- A single transfer above 1,000,000 bytes triggers a large-transfer alert. The threshold is strict: exactly 1,000,000 bytes does not alert.
-- The CSV includes documentation-only example IP addresses. Results are sorted by IP and threat name for stable output.
-- This small exercise counts across the whole input. A deployed IDS should use time windows, normalize log formats, suppress duplicates, and tune thresholds for its network.
+### Remember the flow
+
+**Count failures → collect distinct ports → compare transfer size.** These three signals map directly to the three requested threat types.
+
+### Walkthrough
+
+1. `csv.DictReader` gives each row named fields: `ip`, `event`, `port`, and `bytes`.
+2. `failed[ip]` counts `LOGIN_FAILED` rows. Three or more failures from one IP produce a brute-force alert.
+3. `ports[ip]` is a set, so connecting to the same port repeatedly counts once. Three or more *different* ports produce a port-scan alert.
+4. A `TRANSFER` row above 1,000,000 bytes produces a large-transfer alert immediately. Exactly 1,000,000 bytes does not exceed the threshold.
+5. The alerts are sorted before printing so the report order is predictable.
+
+### Bundled example
+
+| Example IP | Evidence | Alert |
+| --- | --- | --- |
+| `192.0.2.10` | Three failed logins | Brute-force login |
+| `198.51.100.20` | Three different destination ports | Port scan |
+| `203.0.113.30` | 1,500,000-byte transfer | Large transfer |
+
+### Limits and viva points
+
+- These addresses are documentation/example IPs. The CSV is simulated; no packets are captured.
+- The program counts the whole file rather than a time window. A real IDS should define a period, tune thresholds, handle noisy logs, and avoid repeated alerts.
+- Detection is a signal for investigation, not proof that an IP is malicious.
 
 ## How to Operate/Run the Files
 
@@ -21,4 +42,4 @@ The program reads `sample_log.csv`, counts failed logins and distinct connection
 python3 main.py
 ```
 
-Run from this folder; edit `sample_log.csv` to try other events. CSV columns are `ip,event,port,bytes`.
+Run from this folder. Edit `sample_log.csv` to experiment with thresholds and events. Keep the header `ip,event,port,bytes`.

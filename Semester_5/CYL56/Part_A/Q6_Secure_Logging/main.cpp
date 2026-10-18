@@ -1,4 +1,3 @@
-#include <chrono>
 #include <ctime>
 #include <fstream>
 #include <iomanip>
@@ -6,35 +5,28 @@
 #include <stdexcept>
 #include <string>
 
-enum class Severity { INFO, WARNING, ERROR };
-
 class Logger {
-    std::ofstream out_;
+    std::ofstream file;
 public:
-    explicit Logger(const std::string& path) : out_(path, std::ios::app) {
-        if (!out_) throw std::runtime_error("cannot open log file: " + path);
+    explicit Logger(const std::string& name) : file(name, std::ios::app) {
+        if (!file) throw std::runtime_error("cannot open log");
     }
-    void log(Severity level, const std::string& message) {
-        if (message.empty()) throw std::invalid_argument("log message cannot be empty");
-        const char* label = level == Severity::INFO ? "INFO" : level == Severity::WARNING ? "WARNING" : "ERROR";
-        auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-        out_ << std::put_time(std::localtime(&now), "%Y-%m-%d %H:%M:%S") << " [" << label << "] " << message << '\n';
-        out_.flush();
-        if (!out_) throw std::runtime_error("log write failed");
+    void log(const std::string& level, const std::string& message) {
+        if (message.empty()) throw std::invalid_argument("empty message");
+        std::time_t now = std::time(nullptr);
+        file << std::put_time(std::localtime(&now), "%Y-%m-%d %H:%M:%S")
+             << " [" << level << "] " << message << '\n';
+        file.flush();
+        if (!file) throw std::runtime_error("log write failed");
     }
 };
 
 int main() {
-    try {
-        Logger log("app.log");
-        log.log(Severity::INFO, "Application started");
-        log.log(Severity::WARNING, "Failed login detected");
-        log.log(Severity::ERROR, "Example error");
-        try { log.log(Severity::INFO, ""); }
-        catch (const std::invalid_argument& e) { std::cout << "Rejected: " << e.what() << '\n'; }
-        std::cout << "Wrote three entries to app.log\n";
-    } catch (const std::exception& e) {
-        std::cerr << e.what() << '\n';
-        return 1;
-    }
+    Logger log("app.log");
+    log.log("INFO", "Started");
+    log.log("WARNING", "Failed login");
+    log.log("ERROR", "Example error");
+    try { log.log("INFO", ""); }
+    catch (const std::invalid_argument& error) { std::cout << "Rejected: " << error.what() << '\n'; }
+    std::cout << "Wrote three log entries.\n";
 }
