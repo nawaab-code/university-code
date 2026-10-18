@@ -1,0 +1,8 @@
+*.class
+__pycache__/
+.venv/
+*.pcap
+*.pcapng
+*.keys
+*.log
+browser-profile/
