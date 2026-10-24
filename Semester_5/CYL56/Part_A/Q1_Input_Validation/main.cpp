@@ -3,24 +3,37 @@
 #include <string>
 
 bool email_ok(const std::string& email) {
-    return std::regex_match(email, std::regex(R"([\w.%+-]+@[\w.-]+\.[A-Za-z]{2,})"));
+    std::regex email_pattern(R"([\w.%+-]+@[\w.-]+\.[A-Za-z]{2,})");
+    return std::regex_match(email, email_pattern);
 }
 
 bool age_ok(const std::string& age) {
-    if (!std::regex_match(age, std::regex(R"([0-9]{1,3})"))) return false;
-    int n = std::stoi(age);
-    return n >= 1 && n <= 120;
+    std::regex age_pattern(R"([0-9]{1,3})");
+
+    // Check the text before converting it to an integer.
+    if (!std::regex_match(age, age_pattern)) {
+        return false;
+    }
+
+    int age_number = std::stoi(age);
+    return age_number >= 1 && age_number <= 120;
 }
 
 int main() {
-    for (const auto& email : {"alice@example.com", "bad@@example.com"})
-        std::cout << email << ": " << (email_ok(email) ? "YES" : "NO") << '\n';
-    for (const auto& age : {"25", "0", "121", "abc"})
-        std::cout << age << ": " << (age_ok(age) ? "YES" : "NO") << '\n';
+    // Store both inputs as text so they can be validated.
+    std::string email;
+    std::string age;
 
-    std::string email, age;
-    std::cout << "Email: "; std::getline(std::cin, email);
-    std::cout << "Age: "; std::getline(std::cin, age);
+    // Prompt the user to enter their email and age.
+    std::cout << "Email: ";
+    std::getline(std::cin, email);
+
+    std::cout << "Age: ";
+    std::getline(std::cin, age);
+
+    // Validate the user input and display the results.
     std::cout << "Email valid? " << (email_ok(email) ? "YES" : "NO") << '\n';
     std::cout << "Age valid? " << (age_ok(age) ? "YES" : "NO") << '\n';
+
+    return 0;
 }

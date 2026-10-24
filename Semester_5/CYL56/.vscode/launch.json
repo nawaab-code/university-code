@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "lldb",
+      "request": "launch",
+      "args": [],
+      "cwd": "/Users/arushyadav/Development/University/university-code/Semester_5/CYL56",
+      "program": "/Users/arushyadav/Development/University/university-code/Semester_5/CYL56/build/Debug/outDebug"
+    }
+  ]
+}
