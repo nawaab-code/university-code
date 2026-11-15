@@ -6,8 +6,8 @@
       "type": "lldb",
       "request": "launch",
       "args": [],
-      "cwd": "/Users/arushyadav/Development/University/university-code/Semester_5/CYL56",
-      "program": "/Users/arushyadav/Development/University/university-code/Semester_5/CYL56/build/Debug/outDebug"
+      "cwd": "/Users/arushyadav/Development/University/university-code/Semester_5/CYL56/Part_A/Q3_Safe_Arithmetic",
+      "program": "/Users/arushyadav/Development/University/university-code/Semester_5/CYL56/Part_A/Q3_Safe_Arithmetic/build/Debug/outDebug"
     }
   ]
 }
