@@ -1,48 +1,65 @@
 # University code
 
-Course materials and exercises organized by semester and course. Lab solutions have individual question folders with runnable code and detailed READMEs.
+## Course map
 
-## Repository map
+Courses awaiting repository materials have a placeholder README.
 
-| Course | Contents | Requirements |
-| --- | --- | --- |
-| [Semester 1 / PYC12](Semester_1/PYC12) | Engineering Physics syllabus, course outcomes, and assessment | None |
-| [Semester 4 / CYL46](Semester_4/CYL46) | `1.sql`: MySQL library database schema, sample data, and queries | MySQL |
-| [Semester 4 / CYL48](Semester_4/CYL48) | `1.py`–`8.py`: NumPy, pandas, Matplotlib, Seaborn, and Plotly exercises | Python plus the libraries imported by each script |
-| [Semester 5 / CY52](Semester_5/CY52) | First five Advanced Networks lab experiments in Python | Python 3.10+; standard library only |
-| [Semester 5 / CYL56](Semester_5/CYL56) | All 12 Defensive Laboratory questions, one folder per question | C++17 and Python 3; Python standard library only |
-| [Semester 5 / CYL57](Semester_5/CYL57) | All 10 Cryptography and Network Security Laboratory questions | Java 11+, Python/Scapy, Wireshark; Linux VM for live network labs |
+### Semester 1
 
-CYL48's `4.py` expects a `file.csv` in its working directory; that data file is not in this repository. CYL46's `1.sql` starts by dropping and recreating `library_db`, so inspect it before running it against a MySQL instance that already has that database.
+- [AECP17 A Scientific Approach to Health](Semester_1/AECP17)
+- [ESC133 Introduction to Electronics Engineering](Semester_1/ESC133)
+- [HSCP15 Communicative English](Semester_1/HSCP15)
+- [HSCP16K Kannada Kali](Semester_1/HSCP16K)
+- [MAC11 Advance Calculus and Modular Arithmetic](Semester_1/MAC11)
+- [PLC142 Introduction to Python Programming](Semester_1/PLC142)
+- [PPC18 Principles of Programming Using C](Semester_1/PPC18)
+- [PYC12 Engineering Physics](Semester_1/PYC12)
 
-## CY52 lab index
+### Semester 2
 
-| Question | Topic | Folder |
-| --- | --- | --- |
-| 1 | TCP client/server file transfer | [Question 1](Semester_5/CY52/question_01_tcp_file_transfer) |
-| 2 | UDP datagram client/server messages | [Question 2](Semester_5/CY52/question_02_udp_datagrams) |
-| 3 | CRC-CCITT generation and verification | [Question 3](Semester_5/CY52/question_03_crc_ccitt) |
-| 4 | Client/server checksum generation and verification | [Question 4](Semester_5/CY52/question_04_checksum) |
-| 5 | IPv4 fragmentation and reassembly | [Question 5](Semester_5/CY52/question_05_ipv4_fragmentation) |
+- [AECC27 Design Thinking](Semester_2/AECC27)
+- [CYC22 Engineering Chemistry](Semester_2/CYC22)
+- [CYLC29 Engineering Chemistry Laboratory](Semester_2/CYLC29)
+- [ESC232 Introduction to Electrical Engineering](Semester_2/ESC232)
+- [ETC245 Internet of Things](Semester_2/ETC245)
+- [HSCC25 Professional Writing Skills](Semester_2/HSCC25)
+- [HSCC26 Constitution of India](Semester_2/HSCC26)
+- [MAC21 Numerical Techniques and Differential Equations](Semester_2/MAC21)
+- [MELV18 Computer-Aided Engineering Drawing Laboratory](Semester_2/MELV18)
 
-See the [CY52 course README](Semester_5/CY52/README.md) for the full lab index and test command. Each question folder has its own `README.md` with the task, commands, explanation, and exam points.
+### Semester 3
 
-## Recent repository changes
+- [CY31 Laplace Transforms and Vector Space](Semester_3/CY31)
+- [CY32 Data Communication and Networking](Semester_3/CY32)
+- [CY33 Data Structures](Semester_3/CY33)
+- [CY34 Computer Organization and Architecture](Semester_3/CY34)
+- [CY35 Discrete Mathematical Structures](Semester_3/CY35)
+- [CYAEC39 Ability Enhancement Course III (Object-Oriented Programming)](Semester_3/CYAEC39)
+- [CYL36 Data Structures Laboratory](Semester_3/CYL36)
+- [CYL37 Application Development using Java Laboratory](Semester_3/CYL37)
+- [UHV38 Universal Human Values](Semester_3/UHV38)
 
-- Organized the CY52 lab files into one folder per syllabus question. Related client, server, helper, and sample files now live together.
-- Added a README inside each CY52 question folder and a central test suite under `Semester_5/CY52/tests/`.
-- Matched professor-corrected student records to the first five CY52 experiments by topic.
-- Simplified the CY52 programs to short, interactive lab versions that are easier to learn and reproduce in an exam.
-- Expanded every CY52 question README with imports, protocol or algorithm concepts, folder rationale, run instructions, and line-by-line explanations.
-- Kept earlier Semester 4 coursework grouped under `Semester_4/CYL46` and `Semester_4/CYL48`.
+### Semester 4
 
-## Run the CY52 checks
+- [CY41 Statistics, Probability and Linear Programming](Semester_4/CY41)
+- [CY42 Operating Systems](Semester_4/CY42)
+- [CY43 Design and Analysis of Algorithms](Semester_4/CY43)
+- [CY44 Automata Theory and Compiler Design](Semester_4/CY44)
+- [CY45 Database Management Systems](Semester_4/CY45)
+- [CYAEC49 NoSQL Databases](Semester_4/CYAEC49)
+- [CYL46 Database Management Systems Laboratory](Semester_4/CYL46)
+- [CYL47 Design and Analysis of Algorithms Laboratory](Semester_4/CYL47)
+- [CYL48 Visualisation Laboratory](Semester_4/CYL48)
 
-From the repository root:
+### Semester 5
 
-```bash
-cd "Semester_5/CY52"
-python3 -m unittest discover -s tests -v
-```
-
-The socket examples use `127.0.0.1` by default. Run a server and its client in separate terminals, following the commands in that question's README.
+- [AL58 Research Methodology and IPR](Semester_5/AL58)
+- [CY51 Artificial Intelligence and Machine Learning](Semester_5/CY51)
+- [CY52 Advanced Networks](Semester_5/CY52)
+- [CY53 Cryptography and Network Security](Semester_5/CY53)
+- [CY54 Secure SDLC](Semester_5/CY54)
+- [CYAEC59 DevOps](Semester_5/CYAEC59)
+- [CYE551 Secure Coding](Semester_5/CYE551)
+- [CYL56 Defensive Laboratory](Semester_5/CYL56)
+- [CYL57 Cryptography and Network Security Laboratory](Semester_5/CYL57)
+- [HS510 Environmental Studies](Semester_5/HS510)
