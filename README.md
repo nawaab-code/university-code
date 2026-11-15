@@ -1,11 +1,12 @@
 # University code
 
-Course exercises organized by semester and course. Lab solutions have individual question folders with runnable code and detailed READMEs.
+Course materials and exercises organized by semester and course. Lab solutions have individual question folders with runnable code and detailed READMEs.
 
 ## Repository map
 
 | Course | Contents | Requirements |
 | --- | --- | --- |
+| [Semester 1 / PYC12](Semester_1/PYC12) | Engineering Physics syllabus, course outcomes, and assessment | None |
 | [Semester 4 / CYL46](Semester_4/CYL46) | `1.sql`: MySQL library database schema, sample data, and queries | MySQL |
 | [Semester 4 / CYL48](Semester_4/CYL48) | `1.py`–`8.py`: NumPy, pandas, Matplotlib, Seaborn, and Plotly exercises | Python plus the libraries imported by each script |
 | [Semester 5 / CY52](Semester_5/CY52) | First five Advanced Networks lab experiments in Python | Python 3.10+; standard library only |
