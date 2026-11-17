@@ -26,8 +26,7 @@ The legacy version field may say TLS 1.2 even for TLS 1.3. Check the **supported
 
 - `../browser.py` launches Chrome/Chromium with a separate profile, disables QUIC so this experiment uses TCP/TLS, and sets `SSLKEYLOGFILE` to an absolute path. `umask 077` limits new secret-file permissions.
 - `tls_client.py` is an optional repeatable HTTP/1.1-over-TLS client. It validates certificates using the default trust store, prints the negotiated version/cipher and status, and explicitly enables Python TLS key logging. It does not replace the syllabus's browser step.
-- `ssl.create_default_context()` enables certificate and hostname checks. `wrap_socket` performs the handshake.
-- The request ends with a blank CRLF line. `Connection: close` lets the read loop finish when the server closes the connection. The helper is for a small response, not a general web browser.
+- `ssl.create_default_context()` enables certificate and hostname checks. `HTTPSConnection` handles the TLS handshake and HTTP request.
 
 ### Useful Wireshark filters
 

@@ -1,29 +1,19 @@
-"""Launch a dedicated Chrome or Chromium profile for a Wireshark TLS capture."""
+"""Launch Chrome or Chromium with a dedicated TLS capture profile."""
 import os
 from pathlib import Path
 import shutil
 import sys
 
 
-def main():
-    candidates = [
-        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-        "google-chrome", "chromium", "chromium-browser",
-    ]
-    browser = next((path for name in candidates if (path := shutil.which(name))), None)
+if __name__ == "__main__":
+    browser = (shutil.which("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
+               or shutil.which("google-chrome") or shutil.which("chromium")
+               or shutil.which("chromium-browser"))
     if browser is None:
         sys.exit("Install Google Chrome or Chromium first.")
 
     os.umask(0o077)
-    keylog = Path("session.keys").resolve()
-    profile = Path("browser-profile").resolve()
-    os.environ["SSLKEYLOGFILE"] = str(keylog)
-    print(f"Wireshark TLS key log file: {keylog}", flush=True)
-    print("Start capture, then browse in the new lab window. Close it when finished.", flush=True)
-    os.execv(browser, [
-        browser, f"--user-data-dir={profile}", "--disable-quic", "--no-first-run", "about:blank",
-    ])
-
-
-if __name__ == "__main__":
-    main()
+    os.environ["SSLKEYLOGFILE"] = str(Path("session.keys").resolve())
+    print("Wireshark TLS key log:", os.environ["SSLKEYLOGFILE"], flush=True)
+    os.execv(browser, [browser, f"--user-data-dir={Path('browser-profile').resolve()}",
+                       "--disable-quic", "--no-first-run", "about:blank"])

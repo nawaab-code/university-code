@@ -32,12 +32,12 @@ Use `ssh-debug.log` as **endpoint evidence** for selected algorithms and authent
 `python3 ssh_session.py USER SERVER_IP` runs:
 
 ```bash
-ssh -vv -E ssh-debug.log -o ControlMaster=no -o ControlPath=none -l USER -- SERVER_IP
+ssh -vv -E ssh-debug.log -o ControlPath=none -l USER -- SERVER_IP
 ```
 
 - `-vv` enables detailed negotiation and authentication diagnostics.
 - `-E` writes those diagnostics to a local file while leaving the terminal available for login and commands.
-- `ControlMaster=no` and `ControlPath=none` avoid reusing an existing multiplexed SSH session; this produces a fresh handshake.
+- `ControlPath=none` prevents connection reuse so each run produces a fresh handshake.
 - The SSH client's standard host-key checking remains enabled.
 
 ### Observation table
