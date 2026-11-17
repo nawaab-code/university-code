@@ -1,19 +1,17 @@
-"""Launch Chrome or Chromium with a dedicated TLS capture profile."""
+"""Open Chrome/Chromium with a fresh profile that logs TLS keys to session.keys."""
 import os
-from pathlib import Path
 import shutil
+import subprocess
 import sys
 
+browser = next(filter(None, map(shutil.which, [
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "google-chrome", "chromium", "chromium-browser"])), None)
+if browser is None:
+    sys.exit("Install Google Chrome or Chromium first.")
 
-if __name__ == "__main__":
-    browser = (shutil.which("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
-               or shutil.which("google-chrome") or shutil.which("chromium")
-               or shutil.which("chromium-browser"))
-    if browser is None:
-        sys.exit("Install Google Chrome or Chromium first.")
-
-    os.umask(0o077)
-    os.environ["SSLKEYLOGFILE"] = str(Path("session.keys").resolve())
-    print("Wireshark TLS key log:", os.environ["SSLKEYLOGFILE"], flush=True)
-    os.execv(browser, [browser, f"--user-data-dir={Path('browser-profile').resolve()}",
-                       "--disable-quic", "--no-first-run", "about:blank"])
+keys = os.path.abspath("session.keys")
+print("Wireshark TLS key log:", keys)
+# QUIC is disabled so the page loads over TCP + TLS, which Wireshark shows as TLS.
+subprocess.run([browser, "--user-data-dir=browser-profile", "--disable-quic", "--no-first-run"],
+               env={**os.environ, "SSLKEYLOGFILE": keys})

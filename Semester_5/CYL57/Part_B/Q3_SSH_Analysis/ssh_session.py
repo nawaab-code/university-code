@@ -1,17 +1,10 @@
-"""Start a fresh OpenSSH session and save the negotiation log."""
-import argparse
-import os
+"""Start a fresh SSH session and save its negotiation log to ssh-debug.log."""
+import subprocess
+import sys
 
+if len(sys.argv) != 3:
+    sys.exit("Usage: python3 ssh_session.py USER SERVER_IP")
+user, server = sys.argv[1:]
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("user")
-    parser.add_argument("server", help="Lab server IP address or hostname")
-    args = parser.parse_args()
-
-    os.umask(0o077)
-    try:
-        os.execvp("ssh", ["ssh", "-vv", "-E", "ssh-debug.log", "-o", "ControlPath=none",
-                          "-l", args.user, "--", args.server])
-    except OSError as error:
-        parser.exit(1, f"{error}\n")
+# -vv logs key exchange, cipher and authentication; ControlPath=none forces a new handshake.
+subprocess.run(["ssh", "-vv", "-E", "ssh-debug.log", "-o", "ControlPath=none", "-l", user, "--", server])
