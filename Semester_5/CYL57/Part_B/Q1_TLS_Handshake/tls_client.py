@@ -1,5 +1,6 @@
-"""Optional HTTPS request with TLS key logging; browser.sh satisfies the browser task."""
+"""Optional HTTPS request with TLS key logging; ../browser.py satisfies the browser task."""
 import argparse
+import os
 import socket
 import ssl
 from pathlib import Path
@@ -11,6 +12,7 @@ def main():
     parser.add_argument("--port", type=int, default=443)
     parser.add_argument("--cafile", help="Trust this PEM CA/certificate for a local TLS server")
     args = parser.parse_args()
+    os.umask(0o077)
     context = ssl.create_default_context(cafile=args.cafile)
     context.keylog_filename = str(Path("session.keys").resolve())
     context.set_alpn_protocols(["http/1.1"])

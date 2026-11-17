@@ -14,7 +14,7 @@ This solution uses Scapy as the packet-crafting alternative to arpspoof/Ettercap
 
 ### The fixed topology
 
-`isolated_lab.sh` builds a private Linux bridge and three network namespaces. The bridge has no host IP and no physical uplink. No internet route is added.
+`../namespace_lab.py arp` builds a private Linux bridge and three network namespaces. The bridge has no host IP and no physical uplink. No internet route is added.
 
 | Role | Namespace | IP | MAC |
 | --- | --- | --- | --- |
@@ -103,7 +103,7 @@ sudo apt-get install python3-venv iproute2 tcpdump curl
 From this question folder:
 
 ```bash
-sudo bash isolated_lab.sh "$(cd ../../.venv/bin && pwd)/python"
+sudo ../../.venv/bin/python ../namespace_lab.py arp
 ```
 
 The script runs for roughly 20 seconds. It creates the three namespaces, starts the server and packet captures, makes a baseline HTTP request, prints the legitimate binding, starts poisoning, prints poisoned bindings, makes another HTTP request through the attacker, waits for restoration, and prints the restored binding. On exit it stops namespace processes and removes the topology.

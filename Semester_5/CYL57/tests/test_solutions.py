@@ -210,16 +210,10 @@ class FilesAndScripts(unittest.TestCase):
                 for heading in ['## 1. Question', '## 2. Brief explanation',
                                 '## 3. Extensive explanation', '## 4. How to operate/run the files']:
                     self.assertIn(heading, text)
-                self.assertTrue(any(p.suffix in ['.java', '.py', '.sh', '.js'] for p in folder.iterdir()))
-
-    def test_shell_script_syntax(self):
-        for script in (ROOT / 'Part_B').glob('*/*.sh'):
-            with self.subTest(script=script.name):
-                result = run(['bash', '-n', str(script)])
-                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertTrue(any(p.suffix in ['.java', '.py'] for p in folder.iterdir()))
 
     def test_python_syntax(self):
-        for script in (ROOT / 'Part_B').glob('*/*.py'):
+        for script in (ROOT / 'Part_B').rglob('*.py'):
             compile(script.read_text(), str(script), 'exec')
 
 

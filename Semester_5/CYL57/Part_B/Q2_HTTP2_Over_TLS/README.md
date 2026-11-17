@@ -41,7 +41,7 @@ The client connection preface starts with `PRI * HTTP/2.0`. Client-initiated str
 
 Find multiple HTTP/2 stream IDs inside the **same** `tcp.stream`. To demonstrate concurrent multiplexing, look for interleaved HEADERS/DATA frames for streams whose lifetimes overlap. Different stream IDs alone prove separate HTTP/2 streams but do not prove simultaneous activity. Different TCP connections do not demonstrate multiplexing on one connection.
 
-`requests.js` starts six concurrent same-origin fetch requests with cache bypass requested. It reads response bodies so their DATA frames are available. The root path query values distinguish requests; the actual server may cache, redirect, serialize, or finish small responses too quickly to show clear overlap. Use an allowed HTTP/2 site with several sizeable resources and repeat if necessary. Do not manufacture a successful multiplexing observation.
+`http2_client.py` sends six concurrent HTTPS requests and prints the HTTP version and status for each. Find their stream IDs in Wireshark and compare frame order to check whether they overlap.
 
 ### Useful filters and record details
 
@@ -65,14 +65,22 @@ Without session secrets you generally see TLS records rather than the HTTP/2 con
 Requires Wireshark and Chrome/Chromium on macOS or Linux. Run commands from this folder.
 
 1. Start Wireshark capture on the active network interface with capture filter `tcp port 443`.
-2. Run `bash browser.sh`. This dedicated profile logs keys to this folder's `session.keys` and disables QUIC.
+2. Run `python3 ../browser.py`. This dedicated profile logs keys to this folder's `session.keys` and disables QUIC.
 3. Browse to an HTTPS website supporting HTTP/2, for example `https://www.wireshark.org/`. Server support can change; verify the actual Protocol column in browser DevTools -> Network. Right-click Network column headings to enable Protocol.
-4. In DevTools, enable **Disable cache** while DevTools is open, then reload the page to generate requests. To generate more requests, paste the contents of `requests.js` into the console on that website's own page and execute it. Review the six-request script before pasting; some browsers require you to enable console pasting explicitly.
+4. In DevTools, enable **Disable cache** while DevTools is open, then reload the page to generate requests. Use the Python client below if you need a repeatable request sequence.
 5. Stop and save capture as `http2.pcapng`. Configure Wireshark TLS key-log preference to the absolute `session.keys` path printed by the launcher.
 6. Check ALPN selection and filter `http2`. Choose a connection and inspect HEADERS/DATA with several stream IDs. Use Follow -> HTTP/2 Stream where available.
 7. Record the evidence described above. If traffic is HTTP/1.1, choose another HTTP/2 site; if it is QUIC, confirm the lab browser was used.
 
-`browser.sh` is the runnable browser helper. `requests.js` runs in the browser console, not with Node.js; it relies on browser `fetch` and the current page's `location`.
+### Repeatable Python client
+
+Install the [course Python dependencies](../../README.md#python-environment). From this question folder, start Wireshark capture and run:
+
+```bash
+../../.venv/bin/python http2_client.py https://www.wireshark.org/
+```
+
+Load `session.keys` from this folder in Wireshark and filter to the client's TCP connection. For a local server, include the port in the URL and pass `--cafile` with the test CA.
 
 Close the lab browser before deleting `browser-profile` to reset the experiment. Remove session secrets when no longer needed. Capture files, profile data, and key logs are ignored by Git.
 

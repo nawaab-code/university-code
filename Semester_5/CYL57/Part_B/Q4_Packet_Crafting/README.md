@@ -30,7 +30,7 @@ IP(dst=target) / ICMP()
 
 ### Understanding the isolated firewall lab
 
-`firewall_lab.sh` creates two Linux network namespaces connected by a veth pair. A namespace has its own interfaces, routes, processes' network view, and firewall rules.
+`../namespace_lab.py firewall` creates two Linux network namespaces connected by a veth pair. A namespace has its own interfaces, routes, processes' network view, and firewall rules.
 
 ```text
 cyl57-probe                         cyl57-target
@@ -68,7 +68,7 @@ Expand Ethernet, IP, and transport headers where present. `probes.pcap` uses raw
 
 ### Offline packet creation (macOS, Linux, or Windows)
 
-From `Semester_5/CYL57`, create an environment and install the one Python dependency:
+From `Semester_5/CYL57`, create an environment and install the Python dependencies:
 
 ```bash
 python3 -m venv .venv
@@ -91,7 +91,7 @@ sudo apt-get install python3-venv iproute2 nftables tcpdump curl
 Set up the Python environment as above inside that VM. From this question folder:
 
 ```bash
-sudo bash firewall_lab.sh "$(cd ../../.venv/bin && pwd)/python"
+sudo ../../.venv/bin/python ../namespace_lab.py firewall
 ```
 
 The script takes roughly ten seconds and prints results before/after the rules plus counters. Open its `firewall.pcap` in Wireshark; save the terminal output and your packet observations for your record. It also produces local `server.log`, `capture.log`, and `probes.pcap` files. Offline and live outputs are ignored by Git.
@@ -104,7 +104,7 @@ sudo ../../.venv/bin/python packets.py 192.168.56.20 --send
 
 Start Wireshark before that command and separately configure/inspect the target's firewall. Use the provided namespace script when you want repeatable known rules and a known open port.
 
-If sudo or namespace creation fails inside a restricted container, use a full Linux VM. If a stale `cyl57-probe` or `cyl57-target` namespace exists, inspect it and remove it only if it is left over from your own prior lab; the script refuses to overwrite existing namespaces. Normal exit and Ctrl-C clean up automatically; SIGKILL or a VM crash cannot run cleanup traps.
+If sudo or namespace creation fails inside a restricted container, use a full Linux VM. If a stale `cyl57-probe` or `cyl57-target` namespace exists, inspect it and remove it only if it is left over from your own prior lab; the script refuses to overwrite existing namespaces. Normal exit and Ctrl-C clean up automatically; SIGKILL or a VM crash prevent cleanup.
 
 ## References
 

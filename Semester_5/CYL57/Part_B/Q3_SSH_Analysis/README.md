@@ -29,17 +29,16 @@ Use `ssh-debug.log` as **endpoint evidence** for selected algorithms and authent
 
 ### Understanding the helper
 
-`ssh_session.sh USER SERVER_IP` runs:
+`python3 ssh_session.py USER SERVER_IP` runs:
 
 ```bash
-ssh -vv -E ssh-debug.log -o ControlMaster=no -o ControlPath=none USER@SERVER_IP
+ssh -vv -E ssh-debug.log -o ControlMaster=no -o ControlPath=none -l USER -- SERVER_IP
 ```
 
 - `-vv` enables detailed negotiation and authentication diagnostics.
 - `-E` writes those diagnostics to a local file while leaving the terminal available for login and commands.
 - `ControlMaster=no` and `ControlPath=none` avoid reusing an existing multiplexed SSH session; this produces a fresh handshake.
 - The SSH client's standard host-key checking remains enabled.
-- `set -euo pipefail` stops the shell helper on failures or missing variables.
 
 ### Observation table
 
@@ -71,7 +70,7 @@ Use an existing account on that server. From the client:
 2. Open a terminal in this question folder and run:
 
 ```bash
-bash ssh_session.sh labuser 192.168.56.20
+python3 ssh_session.py labuser 192.168.56.20
 ```
 
 3. Verify the presented host-key fingerprint using the server console (`ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub`, if Ed25519 is the offered host key). Accept only the expected server; authenticate with its configured account.
